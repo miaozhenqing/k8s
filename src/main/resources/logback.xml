@@ -1,0 +1,27 @@
+<configuration scanPeriod="30 seconds" scan="true">
+
+    <!-- 定义日志输出格式 -->
+    <property name="LOG_PATTERN" value="%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n" />
+
+    <!-- 定义控制台输出的日志appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 定义文件输出的日志appender -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>/logs/logFile.log</file>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 给根Logger添加两种输出方式 -->
+    <root level="debug">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
+    </root>
+
+</configuration>
