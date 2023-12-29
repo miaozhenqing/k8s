@@ -1,7 +1,7 @@
-package com.example.dockertest.controller;
+package com.example.controller;
 
-import com.example.dockertest.config.ServerConfig;
-import com.example.dockertest.config.UserConfig;
+import com.example.config.ServerConfig;
+import com.example.config.UserConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class UserController {
     @Autowired
     private UserConfig userConfig;
 
-    private String path = "/docker-test/data/example.txt"; // 文件路径
+    private String path = "/k8s/data/example.txt"; // 文件路径
 
 
     private AtomicLong currentCount = new AtomicLong();

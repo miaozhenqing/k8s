@@ -1,13 +1,13 @@
-package com.example.dockertest;
+package com.example;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DockerTestApplication {
+public class StartApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(DockerTestApplication.class, args);
+        SpringApplication.run(StartApplication.class, args);
     }
 
 }

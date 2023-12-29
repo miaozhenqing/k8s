@@ -1,4 +1,5 @@
 FROM openjdk:8-alpine
-WORKDIR /docker-test
-COPY docker-test-0.0.1-SNAPSHOT.jar /docker-test/app.jar
-CMD ["java","-jar","/docker-test/app.jar","--spring.config.location=file:./config/","--spring.profiles.active=server,user"]
+WORKDIR /k8s
+COPY k8s-0.0.1-SNAPSHOT.jar /k8s/app.jar
+#"--spring.profiles.active=server,user"
+CMD ["java","-jar","/k8s/app.jar","--spring.config.location=file:./config/"]
