@@ -48,6 +48,7 @@ public class UserController {
         currentShow += "<h1>hi " + userConfig.getUserId() + "-" + userConfig.getUsername() + "</h1>\n";
 
         String finalStr = currentShow + "\n" + message;
+        finalStr = finalStr + "\n" + "version:v13";
         logger.info(finalStr);
         return finalStr;
     }

@@ -1,0 +1,90 @@
+# k8s-config.yaml for ingress test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      imagePullSecrets:
+        - name: aliyunregistrykey
+      containers:
+        - name: web-container
+          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:v12
+          ports:
+            - containerPort: 18090
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: web-hostpath-volume
+              mountPath: /k8s/data
+            - name: web-configmap-volume
+              mountPath: /k8s/config
+      volumes:
+        - name: web-configmap-volume
+          configMap:
+            name: web-configmap
+        - name: web-empty-volume
+          emptyDir: {}
+        - name: web-hostpath-volume
+          hostPath:
+            path: /k8s/hostpath
+            type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-service
+spec:
+  selector:
+    app: web
+  ports:
+    - name: client-port-1
+      protocol: TCP
+      port: 18090
+      targetPort: 18090
+      nodePort: 30000
+  type: NodePort
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:latest
+          ports:
+            - containerPort: 6379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+      targetPort: 6379
+  type: ClusterIP

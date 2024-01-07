@@ -23,6 +23,8 @@ spec:
             - containerPort: 18090
           imagePullPolicy: IfNotPresent
           volumeMounts:
+            - name: web-hostpath-volume
+              mountPath: /k8s/data
             - name: web-configmap-volume
               mountPath: /k8s/config
       volumes:
@@ -31,7 +33,10 @@ spec:
             name: web-configmap
         - name: web-empty-volume
           emptyDir: {}
-
+        - name: web-hostpath-volume
+          hostPath:
+            path: /k8s/hostpath
+            type: DirectoryOrCreate
 
 ---
 apiVersion: v1
@@ -46,7 +51,8 @@ spec:
       protocol: TCP
       port: 18090
       targetPort: 18090
-  type: ClusterIP
+      nodePort: 30000
+  type: NodePort
 
 ---
 apiVersion: apps/v1
