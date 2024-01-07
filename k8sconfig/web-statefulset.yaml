@@ -4,6 +4,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: web-statefulset
+  namespace: mzq
 spec:
   serviceName: "web-service"
   replicas: 2
@@ -44,6 +45,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: web-service
+  namespace: mzq
 spec:
   selector:
     app: web
@@ -60,6 +62,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: redis-deployment
+  namespace: mzq
 spec:
   replicas: 1
   selector:
@@ -81,6 +84,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: redis-service
+  namespace: mzq
 spec:
   selector:
     app: redis
