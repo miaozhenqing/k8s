@@ -2,6 +2,7 @@ package com.example.controller;
 
 import com.example.config.ServerConfig;
 import com.example.config.UserConfig;
+import com.example.thread.ThreadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +16,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @RestController
@@ -78,5 +83,51 @@ public class UserController {
             e.printStackTrace();
         }
         return builder.toString();
+    }
+
+    @GetMapping("sleep")
+    public String sleep(String minute) {
+
+        try {
+            Thread myThread = new Thread(() -> {
+                long time = 60 * 1000;
+                if (minute != null) {
+                    time = Integer.parseInt(minute) * 60 * 1000;
+                }
+                logger.info("sleep start,time:{}\n", time);
+                try {
+                    Thread.sleep(time);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                logger.info("sleep end,time:{}\n", time);
+            }, "11111-thread");
+            myThread.start();
+        } catch (Exception e) {
+            return e.toString();
+        }
+        return "ok:" + minute;
+    }
+
+    @GetMapping("threadTop")
+    public String threadTop() {
+
+        int count = 60;
+        List<Map<Long, Long>> list = new ArrayList<>();
+        while (count-- > 0) {
+            Map<Long, Long> topNThreads = ThreadUtil.getTopNThreads(1000, 5);
+            list.add(topNThreads);
+        }
+        Map<String,Long> threadNameToValueMap=new HashMap<>();
+        Map<Long, Thread> threadMap = ThreadUtil.getThreadMap();
+        for (Map<Long, Long> map : list) {
+            logger.info("=========================\n");
+            for (Map.Entry<Long, Long> entry : map.entrySet()) {
+                Thread thread = threadMap.get(entry.getKey());
+                logger.info("{}:{}\n", thread.getName(),entry.getValue());
+            }
+        }
+        logger.info("threadTop...{}", list);
+        return list.toString();
     }
 }
