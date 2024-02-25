@@ -38,6 +38,25 @@ public class UserController {
 
     private AtomicLong currentCount = new AtomicLong();
 
+    @GetMapping("viewcache")
+    public String viewCache() {
+        Long viewCount = currentCount.incrementAndGet();
+        String currentShow = "<h1>redis访问次数：" + viewCount + "</h1>\n";
+        String message;
+        try {
+            InetAddress adder = InetAddress.getLocalHost();
+            message = adder.getHostName() + "-" + adder.getHostAddress();
+        } catch (UnknownHostException e) {
+            message = "error";
+        }
+        currentShow += "<h1>服务id：" + serverConfig.getServerId() + "</h1>\n";
+        currentShow += "<h1>hi " + userConfig.getUserId() + "-" + userConfig.getUsername() + "</h1>\n";
+
+        String finalStr = currentShow + "\n" + message;
+        finalStr = finalStr + "\n" + "version:v13";
+        logger.info(finalStr);
+        return finalStr;
+    }
     @GetMapping("view")
     public String viewCount() {
         Long viewCount = redisTemplate.opsForValue().increment("viewCount", 1);

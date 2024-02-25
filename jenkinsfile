@@ -1,0 +1,26 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('从仓库拉取代码') {
+            steps {
+                git branch: 'master', url: 'https://github.com/miaozhenqing/k8s.git'
+            }
+        }
+
+        stage('进行代码编译') {
+            steps {
+                sh 'gradle build'
+                echo '等待10秒'
+                sleep time: 10, unit: 'SECONDS'
+                echo '继续执行'
+            }
+        }
+
+        stage('启动服务') {
+            steps {
+                sh 'java -jar /target/k8s-0.0.1-SNAPSHOT.jar'
+            }
+        }
+    }
+}
