@@ -5,6 +5,7 @@
 plugins {
     id 'java'
     id 'maven-publish'
+    id 'org.springframework.boot' version '2.5.4'
 }
 
 repositories {
@@ -48,3 +49,18 @@ task crashTask {
     }
 }
 build.dependsOn(crashTask)
+
+
+task buildJar(type: Jar) {
+    dependsOn 'build'
+    from sourceSets.main.output
+    from configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    manifest {
+        attributes 'Main-Class': 'com.example.StartApplication'
+    }
+    zip64 = true
+    // 直接打到这个目录方便测试
+    destinationDirectory = file('/k8sconfig')
+//    archiveFileName = 'my-application.jar'
+}
+

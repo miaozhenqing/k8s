@@ -35,3 +35,4 @@ build/
 logs
 test
 /.gradle/
+/k8sconfig/k8s-0.0.1-SNAPSHOT.jar
