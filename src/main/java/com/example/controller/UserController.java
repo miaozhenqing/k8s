@@ -2,7 +2,6 @@ package com.example.controller;
 
 import com.example.config.ServerConfig;
 import com.example.config.UserConfig;
-import com.example.thread.ThreadUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +15,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
-@RestController
+@RestController("/user")
 public class UserController {
     private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
@@ -38,7 +33,7 @@ public class UserController {
 
     private AtomicLong currentCount = new AtomicLong();
 
-    @GetMapping("viewcache")
+    @GetMapping("/viewcache")//http://localhost:30000/user/viewcache
     public String viewCache() {
         Long viewCount = currentCount.incrementAndGet();
         String currentShow = "<h1>redis访问次数：" + viewCount + "</h1>\n";
@@ -57,7 +52,7 @@ public class UserController {
         logger.info(finalStr);
         return finalStr;
     }
-    @GetMapping("view")
+    @GetMapping("/viewredis")//http://localhost:30000/user/viewredis
     public String viewCount() {
         Long viewCount = redisTemplate.opsForValue().increment("viewCount", 1);
         String currentShow = "<h1>redis访问次数：" + viewCount + "</h1>\n";
@@ -77,7 +72,7 @@ public class UserController {
         return finalStr;
     }
 
-    @GetMapping("write")
+    @GetMapping("/write")
     public String write(String content) {
         if (content == null) {
             content = String.valueOf(System.currentTimeMillis());
@@ -90,7 +85,7 @@ public class UserController {
         return content;
     }
 
-    @GetMapping("read")
+    @GetMapping("/read")
     public String read() {
         StringBuilder builder = new StringBuilder("read message:\n");
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
@@ -104,7 +99,7 @@ public class UserController {
         return builder.toString();
     }
 
-    @GetMapping("sleep")
+    @GetMapping("/sleep")
     public String sleep(String minute) {
 
         try {
@@ -128,25 +123,4 @@ public class UserController {
         return "ok:" + minute;
     }
 
-    @GetMapping("threadTop")
-    public String threadTop() {
-
-        int count = 60;
-        List<Map<Long, Long>> list = new ArrayList<>();
-        while (count-- > 0) {
-            Map<Long, Long> topNThreads = ThreadUtil.getTopNThreads(1000, 5);
-            list.add(topNThreads);
-        }
-        Map<String,Long> threadNameToValueMap=new HashMap<>();
-        Map<Long, Thread> threadMap = ThreadUtil.getThreadMap();
-        for (Map<Long, Long> map : list) {
-            logger.info("=========================\n");
-            for (Map.Entry<Long, Long> entry : map.entrySet()) {
-                Thread thread = threadMap.get(entry.getKey());
-                logger.info("{}:{}\n", thread.getName(),entry.getValue());
-            }
-        }
-        logger.info("threadTop...{}", list);
-        return list.toString();
-    }
 }

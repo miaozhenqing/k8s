@@ -19,24 +19,32 @@ spec:
         - name: aliyunregistrykey
       containers:
         - name: web-container
-          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:v12
+          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
           ports:
             - containerPort: 18090
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
+          tty: true
+          stdin: true
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data
-            - name: web-configmap-volume
+            - name: web-order-configmap-volume
               mountPath: /k8s/config
+            - name: web-logs-configmap-volume
+              mountPath: /k8s/logs
       volumes:
-        - name: web-configmap-volume
+        - name: web-order-configmap-volume
           configMap:
-            name: web-configmap
+            name: web-order-configmap
         - name: web-empty-volume
           emptyDir: {}
         - name: web-hostpath-volume
           hostPath:
             path: /k8s/hostpath
+            type: DirectoryOrCreate
+        - name: web-logs-configmap-volume
+          hostPath:
+            path: /k8s/logs
             type: DirectoryOrCreate
 
 ---
@@ -77,6 +85,8 @@ spec:
           image: redis:latest
           ports:
             - containerPort: 6379
+          tty: true
+          stdin: true
 
 ---
 apiVersion: v1
@@ -92,3 +102,19 @@ spec:
       port: 6379
       targetPort: 6379
   type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-order-configmap
+  namespace: mzq
+data:
+  config.json: |
+    {
+      "orderId": "12345",
+      "orderName": "iphone18"
+    }
+  settings.properties: |
+    color=red
+    memory=256
+

@@ -6,15 +6,25 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
-    - host: www.web.com
+    - host: www.web-user.com
       http:
         paths:
           - backend:
               service:
                 name: web-service
                 port:
-                  number: 8081
-            path: /
+                  number: 18090
+            path: /user
+            pathType: Prefix
+    - host: www.web-order.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: web-service
+                port:
+                  number: 18090
+            path: /order
             pathType: Prefix
     - host: www.redis.com
       http:

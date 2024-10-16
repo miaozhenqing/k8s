@@ -29,4 +29,21 @@ kubectl top node: 查看节点的资源使用情况。
 
 
 
+# 登录阿里云容器镜像仓库
+docker build -t myrepository:latest .
+
+docker login -u <your-username> -p <your-password> registry.cn-hangzhou.aliyuncs.com
+
+# 给镜像打标签
+docker tag myrepository:latest registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
+
+# 推送镜像
+docker push registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
+
+# 创建秘钥
+
+kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' 
+
+
+
 
