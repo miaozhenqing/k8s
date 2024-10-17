@@ -42,7 +42,7 @@ docker push registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
 
 # 创建秘钥
 
-kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' 
+kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' -n mzq
 
 
 

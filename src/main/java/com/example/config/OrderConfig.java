@@ -5,12 +5,10 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class OrderConfig {
-    @Value("${orderId}")
+    @Value("${order.id}")
     public int orderId;
-    @Value("${orderName}")
+    @Value("${order.name}")
     public String orderName;
-    @Value("${color}")
-    public String color;
-    @Value("${memory}")
-    public int memory;
+    @Value("${order.price}")
+    public int price;
 }

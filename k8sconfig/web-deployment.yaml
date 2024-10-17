@@ -22,20 +22,15 @@ spec:
           image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
           ports:
             - containerPort: 18090
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           tty: true
           stdin: true
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data
-            - name: web-order-configmap-volume
-              mountPath: /k8s/config
             - name: web-logs-configmap-volume
               mountPath: /k8s/logs
       volumes:
-        - name: web-order-configmap-volume
-          configMap:
-            name: web-order-configmap
         - name: web-empty-volume
           emptyDir: {}
         - name: web-hostpath-volume
@@ -102,19 +97,3 @@ spec:
       port: 6379
       targetPort: 6379
   type: ClusterIP
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: web-order-configmap
-  namespace: mzq
-data:
-  config.json: |
-    {
-      "orderId": "12345",
-      "orderName": "iphone18"
-    }
-  settings.properties: |
-    color=red
-    memory=256
-
