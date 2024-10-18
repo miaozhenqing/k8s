@@ -1,0 +1,60 @@
+#web-deployment web-service 拷贝
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-cpoy-deployment
+  namespace: mzq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-cpoy
+  template:
+    metadata:
+      labels:
+        app: web-cpoy
+    spec:
+      imagePullSecrets:
+        - name: aliyunregistrykey
+      containers:
+        - name: web-cpoy-container
+          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/k8stest:latest
+          ports:
+            - containerPort: 18090
+          imagePullPolicy: IfNotPresent
+          tty: true
+          stdin: true
+          volumeMounts:
+            - name: web-hostpath-volume
+              mountPath: /k8s/data #容器内部的路径
+            - name: web-logs-configmap-volume
+              mountPath: /k8s/logs
+      volumes:
+        - name: web-empty-volume
+          emptyDir: {}
+        - name: web-hostpath-volume
+          hostPath:
+            path: /k8s/hostpath #宿主机上的路径
+            type: DirectoryOrCreate
+        - name: web-logs-configmap-volume
+          hostPath:
+            path: /k8s/logs
+            type: DirectoryOrCreate
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-copy-service
+  namespace: mzq
+spec:
+  selector:
+    app: web-cpoy
+  ports:
+    - name: client-port-1
+      protocol: TCP
+      port: 18090
+      targetPort: 18090
+      nodePort: 30001
+  type: NodePort

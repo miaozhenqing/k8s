@@ -47,3 +47,7 @@ kubectl create secret docker-registry aliyunregistrykey  --docker-server=registr
 
 
 
+
+
+
+

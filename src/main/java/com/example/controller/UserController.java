@@ -74,7 +74,7 @@ public class UserController {
         return finalStr;
     }
 
-    @GetMapping("/write")
+    @GetMapping("/write")//http://localhost:30000/user/write?content=hello
     public String write(String content) {
         if (content == null) {
             content = String.valueOf(System.currentTimeMillis());
@@ -87,7 +87,7 @@ public class UserController {
         return content;
     }
 
-    @GetMapping("/read")
+    @GetMapping("/read")//http://localhost:30001/user/read
     public String read() {
         StringBuilder builder = new StringBuilder("read message:\n");
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(path))) {
