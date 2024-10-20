@@ -25,18 +25,18 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["java", "-Xms150m", "-Xmx200m", "-jar"] #覆盖镜像中的命令
           args: ["/k8s/app.jar"]
-          resources:  #设置资源要求和限制
-            requests:
-              cpu: "0.5"
-              memory: 100Mi
-            limits:
-              memory: 200Mi
-              cpu: "1"
-          resizePolicy:
-            - resourceName: cpu
-              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
-            - resourceName: memory
-              restartPolicy: RestartContainer #内存调整需要重启容器
+#          resources:  #设置资源要求和限制
+#            requests:
+#              cpu: "0.5"
+#              memory: 100Mi
+#            limits:
+#              memory: 200Mi
+#              cpu: "1"
+#          resizePolicy:
+#            - resourceName: cpu
+#              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
+#            - resourceName: memory
+#              restartPolicy: RestartContainer #内存调整需要重启容器
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data

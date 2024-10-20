@@ -45,9 +45,15 @@ docker push registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
 kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' -n mzq
 
 
+# minikube启动器群
+docker pull anjone/kicbase
+minikube start --nodes 2 -p myk8s --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
+minikube start -p myk8s --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
 
+# 做一个端口映射，通过10.0.12.10:8443访问集群（集群为192.168.49.2:8443）
 
-
+iptables -t nat -A PREROUTING -p tcp --dport 8443 -j DNAT --to-destination 192.168.49.2:8443
+iptables -t nat -A POSTROUTING -p tcp -d 192.168.49.2 --dport 8443 -j SNAT --to-source 10.0.12.10
 
 
 
