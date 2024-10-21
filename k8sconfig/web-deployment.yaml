@@ -15,6 +15,9 @@ spec:
       labels:
         app: web
     spec:
+      nodeName: docker-desktop # 指定节点
+      nodeSelector:
+        env: "dev" # 指定标签的节点(kubectl label nodes docker-desktop env=dev)
       imagePullSecrets:
         - name: aliyunregistrykey
       containers:
@@ -22,29 +25,39 @@ spec:
           image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/k8stest:latest
           ports:
             - containerPort: 18090
-          imagePullPolicy: IfNotPresent
-          command: ["java", "-Xms150m", "-Xmx200m", "-jar"] #覆盖镜像中的命令
-          args: ["/k8s/app.jar"]
-#          resources:  #设置资源要求和限制
-#            requests:
-#              cpu: "0.5"
-#              memory: 100Mi
-#            limits:
-#              memory: 200Mi
-#              cpu: "1"
-#          resizePolicy:
-#            - resourceName: cpu
-#              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
-#            - resourceName: memory
-#              restartPolicy: RestartContainer #内存调整需要重启容器
+          imagePullPolicy: Always
+          command: [ "java", "-Xms150m", "-Xmx200m", "-jar" ] #覆盖镜像中的命令
+          args: [ "/k8s/app.jar" ]
+          resources: #设置资源要求和限制
+            requests:
+              cpu: "0.5"
+              memory: 100Mi
+            limits:
+              memory: 200Mi
+              cpu: "1"
+          resizePolicy:
+            - resourceName: cpu
+              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
+            - resourceName: memory
+              restartPolicy: RestartContainer #内存调整需要重启容器
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data
             - name: web-logs-volume
               mountPath: /k8s/logs
+            - name: web-configmap-volume
+              mountPath: /k8s/config
+          lifecycle:
+            postStart: # 容器启动后执行
+              exec:
+                command: [ "/bin/sh", "-c", "echo Hello from the postStart handler > /k8s/message" ]
+            preStop: # 容器停止前执行
+              exec:
+                command: [ "/bin/sh","-c","echo Hello from the preStop handler >> /k8s/message" ]
       volumes:
-        - name: web-empty-volume
-          emptyDir: {}
+        - name: web-configmap-volume
+          configMap:
+            name: web-configmap
         - name: web-hostpath-volume
           hostPath:
             path: /k8s/hostpath
@@ -120,14 +133,14 @@ apiVersion: v1
 kind: PersistentVolume
 metadata:
   name: redis-data-pv
-  namespace: mzq
 spec:
   capacity:
-    storage: 10Gi
+    storage: 1Gi
   accessModes:
     - ReadWriteMany # 该模式允许多个节点以读写方式挂载存储
   hostPath: # 这里作为示例，实际使用中可以使用 NFS, EBS 等
-    path: /data/redis
+    path: /data/myredis
+  storageClassName: hostpath
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -139,4 +152,61 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 10Gi
+      storage: 1Gi
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-file-job
+  namespace: mzq
+spec:
+  template:
+    metadata:
+      name: create-file-pod
+    spec:
+      containers:
+        - name: create-file-container
+          image: alpine
+          command:  ["sh", "-c", "mkdir -p /k8s && touch /k8s/123"]
+          volumeMounts:
+            - name: create-file-volume
+              mountPath: /k8s
+      restartPolicy: OnFailure
+      volumes:
+        - name: create-file-volume
+          hostPath:
+            path: /k8s/create-file
+            type: DirectoryOrCreate
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: scheduled-create-file-job
+  namespace: mzq
+spec:
+  schedule: "*/1 * * * *"  # 每1分钟执行一次
+  successfulJobsHistoryLimit: 1  # 保留最近1个成功的 Job
+  failedJobsHistoryLimit: 1       # 保留最近1个失败的 Job
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 0  # Pod 完成后立即删除
+      template:
+        metadata:
+          name: scheduled-create-file-pod
+        spec:
+          containers:
+            - name: scheduled-create-file-container
+              image: alpine
+              command: ["sh", "-c", "if [ -f /k8s/123 ]; then echo $(date +'%Y-%m-%d %H:%M:%S') > /k8s/123; fi"]
+              volumeMounts:
+                - name: scheduled-create-file-volume
+                  mountPath: /k8s
+          restartPolicy: OnFailure
+          volumes:
+            - name: scheduled-create-file-volume
+              hostPath:
+                path: /k8s/create-file
+                type: DirectoryOrCreate
+
+

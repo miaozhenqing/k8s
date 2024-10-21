@@ -1,4 +1,0 @@
-mysqlRootPassword: admin
-mysqlUser: root
-mysqlPassword: admin
-mysqlDatabase: k8s

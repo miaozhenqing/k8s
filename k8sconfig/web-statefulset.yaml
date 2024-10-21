@@ -1,4 +1,4 @@
-# k8s-config.yaml for statefulSet test
+# k8s-config.yaml
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -6,7 +6,7 @@ metadata:
   name: web-statefulset
   namespace: mzq
 spec:
-  serviceName: "web-service"
+  serviceName: web-statefulset-service
   replicas: 2
   selector:
     matchLabels:
@@ -16,28 +16,56 @@ spec:
       labels:
         app: web
     spec:
+      nodeName: docker-desktop # 指定节点
+      nodeSelector:
+        env: "dev" # 指定标签的节点(kubectl label nodes docker-desktop env=dev)
       imagePullSecrets:
         - name: aliyunregistrykey
       containers:
         - name: web-container
-          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:v12
+          image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/k8stest:latest
           ports:
             - containerPort: 18090
           imagePullPolicy: IfNotPresent
+          command: ["java", "-Xms150m", "-Xmx200m", "-jar"] #覆盖镜像中的命令
+          args: ["/k8s/app.jar"]
+          resources:  #设置资源要求和限制
+            requests:
+              cpu: "0.5"
+              memory: 100Mi
+            limits:
+              memory: 200Mi
+              cpu: "1"
+          resizePolicy:
+            - resourceName: cpu
+              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
+            - resourceName: memory
+              restartPolicy: RestartContainer #内存调整需要重启容器
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data
+            - name: web-logs-volume
+              mountPath: /k8s/logs
             - name: web-configmap-volume
               mountPath: /k8s/config
+          lifecycle:
+            postStart:  # 容器启动后执行
+              exec:
+                command:  ["/bin/sh", "-c", "echo Hello from the postStart handler > /k8s/message"]
+            preStop:  # 容器停止前执行
+              exec:
+                command: [ "/bin/sh","-c","echo Hello from the preStop handler >> /k8s/message" ]
       volumes:
         - name: web-configmap-volume
           configMap:
             name: web-configmap
-        - name: web-empty-volume
-          emptyDir: {}
         - name: web-hostpath-volume
           hostPath:
             path: /k8s/hostpath
+            type: DirectoryOrCreate
+        - name: web-logs-volume
+          hostPath:
+            path: /k8s/logs
             type: DirectoryOrCreate
 
 ---
@@ -78,6 +106,13 @@ spec:
           image: redis:latest
           ports:
             - containerPort: 6379
+          volumeMounts:
+            - name: redis-data-volume # 挂载的存储卷
+              mountPath: /data  # Redis 默认数据存储目录
+      volumes:
+        - name: redis-data-volume
+          persistentVolumeClaim:
+            claimName: redis-data-pvc  # 绑定PVC
 
 ---
 apiVersion: v1
@@ -93,3 +128,29 @@ spec:
       port: 6379
       targetPort: 6379
   type: ClusterIP
+
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-data-pv
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteMany # 该模式允许多个节点以读写方式挂载存储
+  hostPath: # 这里作为示例，实际使用中可以使用 NFS, EBS 等
+    path: /data/myredis
+  storageClassName: hostpath
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc
+  namespace: mzq
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi

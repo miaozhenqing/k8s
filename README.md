@@ -1,5 +1,7 @@
 https://kubernetes.io/zh-cn/docs/home/
 
+https://jimmysong.io/book/kubernetes-handbook/objects/init-containers/
+--apiserver-ips=<k8_host ip>
 
 获取集群信息
 kubectl cluster-info: 显示集群的信息，如 API server 地址和可用服务。
@@ -43,6 +45,9 @@ docker push registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
 # 创建秘钥
 
 kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' -n mzq
+# 命令补全
+
+source <(kubectl completion bash)
 
 
 # minikube启动器群
