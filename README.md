@@ -44,7 +44,7 @@ docker push registry.cn-hangzhou.aliyuncs.com/mzqsingle/myrepository:latest
 
 # 创建秘钥
 
-kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username='xxx' --docker-password='xxx' -n mzq
+kubectl create secret docker-registry aliyunregistrykey  --docker-server=registry.cn-hangzhou.aliyuncs.com --docker-username=xxx --docker-password=xxx -n mzq
 # 命令补全
 
 source <(kubectl completion bash)
@@ -52,13 +52,42 @@ source <(kubectl completion bash)
 
 # minikube启动器群
 docker pull anjone/kicbase
-minikube start --nodes 2 -p myk8s --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
-minikube start -p myk8s --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
+minikube start --nodes 2 -p myk8s --vm-driver docker --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
+minikube start -p myk8s --vm-driver docker --force --image-mirror-country='cn' --image-repository='registry.cn-hangzhou.aliyuncs.com/google_containers' --base-image="anjone/kicbase" --kubernetes-version='v1.22.0' --memory=1024
 
 # 做一个端口映射，通过10.0.12.10:8443访问集群（集群为192.168.49.2:8443）
 
 iptables -t nat -A PREROUTING -p tcp --dport 8443 -j DNAT --to-destination 192.168.49.2:8443
 iptables -t nat -A POSTROUTING -p tcp -d 192.168.49.2 --dport 8443 -j SNAT --to-source 10.0.12.10
 
+#cri-docker安装
 
+https://www.mirantis.com/blog/how-to-install-cri-dockerd-and-migrate-nodes-from-dockershim
+
+# 设置无需验证连接集群
+kubectl config set-cluster myk8s --server=https://192.168.49.2:8443 --insecure-skip-tls-verify=true
+# 导出集群配置
+kubectl config view --flatten > kubeconfig
+
+# docker国内镜像
+"registry-mirrors": [
+"https://dockerpull.com",
+"https://docker.registry.cyou",
+"https://docker-cf.registry.cyou",
+"https://dockercf.jsdelivr.fyi",
+"https://docker.jsdelivr.fyi",
+"https://dockertest.jsdelivr.fyi",
+"https://mirror.aliyuncs.com",
+"https://dockerproxy.com",
+"https://mirror.baidubce.com",
+"https://docker.m.daocloud.io",
+"https://docker.nju.edu.cn",
+"https://docker.mirrors.sjtug.sjtu.edu.cn",
+"https://docker.mirrors.ustc.edu.cn",
+"https://mirror.iscas.ac.cn",
+"https://docker.rainbond.cc"
+]
+
+# 
+eval $(minikube docker-env)
 

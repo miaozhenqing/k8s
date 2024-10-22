@@ -15,9 +15,9 @@ spec:
       labels:
         app: web
     spec:
-      nodeName: docker-desktop # 指定节点
-      nodeSelector:
-        env: "dev" # 指定标签的节点(kubectl label nodes docker-desktop env=dev)
+#      nodeName: docker-desktop # 指定节点
+#      nodeSelector:
+#        env: "dev" # 指定标签的节点(kubectl label nodes docker-desktop env=dev)
       imagePullSecrets:
         - name: aliyunregistrykey
       containers:
@@ -25,7 +25,7 @@ spec:
           image: registry.cn-hangzhou.aliyuncs.com/mzqsingle/k8stest:latest
           ports:
             - containerPort: 18090
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           command: [ "java", "-Xms150m", "-Xmx200m", "-jar" ] #覆盖镜像中的命令
           args: [ "/k8s/app.jar" ]
           resources: #设置资源要求和限制
@@ -35,11 +35,11 @@ spec:
             limits:
               memory: 200Mi
               cpu: "1"
-          resizePolicy:
-            - resourceName: cpu
-              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
-            - resourceName: memory
-              restartPolicy: RestartContainer #内存调整需要重启容器
+#          resizePolicy:
+#            - resourceName: cpu
+#              restartPolicy: NotRequired # CPU 可在不重启容器的情况下进行调整
+#            - resourceName: memory
+#              restartPolicy: RestartContainer #内存调整需要重启容器
           volumeMounts:
             - name: web-hostpath-volume
               mountPath: /k8s/data
@@ -155,58 +155,58 @@ spec:
       storage: 1Gi
 
 ---
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: create-file-job
-  namespace: mzq
-spec:
-  template:
-    metadata:
-      name: create-file-pod
-    spec:
-      containers:
-        - name: create-file-container
-          image: alpine
-          command:  ["sh", "-c", "mkdir -p /k8s && touch /k8s/123"]
-          volumeMounts:
-            - name: create-file-volume
-              mountPath: /k8s
-      restartPolicy: OnFailure
-      volumes:
-        - name: create-file-volume
-          hostPath:
-            path: /k8s/create-file
-            type: DirectoryOrCreate
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: scheduled-create-file-job
-  namespace: mzq
-spec:
-  schedule: "*/1 * * * *"  # 每1分钟执行一次
-  successfulJobsHistoryLimit: 1  # 保留最近1个成功的 Job
-  failedJobsHistoryLimit: 1       # 保留最近1个失败的 Job
-  jobTemplate:
-    spec:
-      ttlSecondsAfterFinished: 0  # Pod 完成后立即删除
-      template:
-        metadata:
-          name: scheduled-create-file-pod
-        spec:
-          containers:
-            - name: scheduled-create-file-container
-              image: alpine
-              command: ["sh", "-c", "if [ -f /k8s/123 ]; then echo $(date +'%Y-%m-%d %H:%M:%S') > /k8s/123; fi"]
-              volumeMounts:
-                - name: scheduled-create-file-volume
-                  mountPath: /k8s
-          restartPolicy: OnFailure
-          volumes:
-            - name: scheduled-create-file-volume
-              hostPath:
-                path: /k8s/create-file
-                type: DirectoryOrCreate
+#apiVersion: batch/v1
+#kind: Job
+#metadata:
+#  name: create-file-job
+#  namespace: mzq
+#spec:
+#  template:
+#    metadata:
+#      name: create-file-pod
+#    spec:
+#      containers:
+#        - name: create-file-container
+#          image: alpine
+#          command:  ["sh", "-c", "mkdir -p /k8s && touch /k8s/123"]
+#          volumeMounts:
+#            - name: create-file-volume
+#              mountPath: /k8s
+#      restartPolicy: OnFailure
+#      volumes:
+#        - name: create-file-volume
+#          hostPath:
+#            path: /k8s/create-file
+#            type: DirectoryOrCreate
+#---
+#apiVersion: batch/v1
+#kind: CronJob
+#metadata:
+#  name: scheduled-create-file-job
+#  namespace: mzq
+#spec:
+#  schedule: "*/1 * * * *"  # 每1分钟执行一次
+#  successfulJobsHistoryLimit: 1  # 保留最近1个成功的 Job
+#  failedJobsHistoryLimit: 1       # 保留最近1个失败的 Job
+#  jobTemplate:
+#    spec:
+#      ttlSecondsAfterFinished: 0  # Pod 完成后立即删除
+#      template:
+#        metadata:
+#          name: scheduled-create-file-pod
+#        spec:
+#          containers:
+#            - name: scheduled-create-file-container
+#              image: alpine
+#              command: ["sh", "-c", "if [ -f /k8s/123 ]; then echo $(date +'%Y-%m-%d %H:%M:%S') > /k8s/123; fi"]
+#              volumeMounts:
+#                - name: scheduled-create-file-volume
+#                  mountPath: /k8s
+#          restartPolicy: OnFailure
+#          volumes:
+#            - name: scheduled-create-file-volume
+#              hostPath:
+#                path: /k8s/create-file
+#                type: DirectoryOrCreate
 
 
